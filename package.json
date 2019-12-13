@@ -1,0 +1,34 @@
+{
+  "name": "rave-reactnative-wrapper",
+  "version": "1.0.0",
+  "description": "React native SDK for Rave by Flutterwave, that utilizes webview",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlessedYahaya/rave-reactNative-wrapper.git"
+  },
+  "keywords": [
+    "react-native",
+    "flutterwave",
+    "rave",
+    "flutterwave-rave",
+    "payment\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[Dreact",
+    "native",
+    "payment",
+    "react",
+    "flutterwave",
+    "react-native-rave"
+  ],
+  "author": "Blessed Yahaya, Flutterwave Developers",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BlessedYahaya/rave-reactNative-wrapper/issues"
+  },
+  "homepage": "https://github.com/BlessedYahaya/rave-reactNative-wrapper#readme",
+  "dependencies": {
+    "react-native-webview": "^7.6.0"
+  }
+}
