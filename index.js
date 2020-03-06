@@ -1,12 +1,14 @@
 import React, {useState} from 'react';
 import {Modal, 
         Text, 
+        Alert,
         View, 
         TouchableOpacity, 
         ActivityIndicator,
         Platform,} from 'react-native';
 
 import { WebView } from 'react-native-webview';
+import decode from 'urldecode';
 
 let showModal;
 let setShowModal;
@@ -16,6 +18,9 @@ let setIsLoading;
 export const Rave = props => {
   [showModal, setShowModal] = useState(false);
   [isLoading, setIsLoading] = useState(false);
+//  this._onNavigationStateChange = this._onNavigationStateChange.bind(this)
+
+
 
   let Rave = {
       html:  `
@@ -46,24 +51,24 @@ export const Rave = props => {
                       metaname: "${props.billingName || props.customerEmail || ''}",
                       metavalue: "${props.billingMobile || props.customerPhone || ''}"
                   }],
-                  onclose: function() {
-                    var resp = {event:'cancelled'};
+                  onclose: function(data) {
+                    var resp = {event: "cancelled", data: {txRef: ${props.txref}, flwRef: dataç, status:""}};
                     window.ReactNativeWebView.postMessage(JSON.stringify(resp))
                   },
-                  callback: function(response) {
-                      var txref = response.tx.txRef;
+                 
+                   callback: function(response) {
+                       var txref = response.tx.txRef;
                         if (
                           response.tx.chargeResponseCode == "00" ||
                           response.tx.chargeResponseCode == "0"
                       ) {
-                            var resp = {event:'successful', transactionRef:txref};
-                            window.ReactNativeWebView.postMessage(JSON.stringify(resp))
+                           var resp = {event: "successful", data: {txRef: ${props.txref}, ...response}};
                       } else {
-                        var resp = {event:'error'};
+                        var resp = {event: "successful", data: {txRef: ${props.txref}, ...response}};
                         window.ReactNativeWebView.postMessage(JSON.stringify(resp))
                       }
                       x.close();
-                  }
+                 }
                 });
               }
             </script>
@@ -88,9 +93,14 @@ export const Rave = props => {
                 originWhitelist={['*']}
                 ref={( webView ) => this.MyWebView = webView}
                 source={Rave}
-                onMessage={(e)=>{messageRecived({onCancel: props.onCancel, onSuccess: props.onSuccess, onError: props.onError}, e.nativeEvent.data)}}
+                onMessage={(e)=>{messageRecived(props, e.nativeEvent.data)}}
                 onLoadStart={() => setIsLoading(true)}
                 onLoadEnd={() => setIsLoading(false)}
+                onNavigationStateChange={async data => {
+                  if (data.url.includes('https://api.ravepay.co') || data.url.includes('https://ravesandboxapi.flutterwave.com')){
+                    await messageRecived(props,data);
+            }      
+                }}
               />
              
               {/*Start of Loading modal*/}
@@ -133,16 +143,23 @@ export const Rave = props => {
             style={{backgroundColor: 'red'}}
             animationType="slide"
             transparent={false}>
-            
+              
                 <WebView
                 javaScriptEnabled={true}
                 javaScriptEnabledAndroid={true}
                 originWhitelist={['*']}
                 ref={( webView ) => this.MyWebView = webView}
                 source={Rave}
-                onMessage={(e)=>{messageRecived({onCancel: props.onCancel, onSuccess: props.onSuccess, onError: props.onError}, e.nativeEvent.data)}}
+                onMessage={(e)=>{
+                  messageRecived({onCancel: props.onCancel, onSuccess: props.onSuccess, onError: props.onError}, e.nativeEvent.data)
+                }}
                 onLoadStart={() => setIsLoading(true)}
                 onLoadEnd={() => setIsLoading(false)}
+                onNavigationStateChange={ async data => {
+                  if (data.url.includes('https://api.ravepay.co') || data.url.includes('https://ravesandboxapi.flutterwave.com')){
+                    await messageRecived(props,data);
+            }
+                }}
               />
              
               {/*Start of Loading modal*/}
@@ -182,20 +199,67 @@ export const Rave = props => {
     
 }
 
+const parseResponse = (props , data )=> {
+  let response = {
+    txRef: props.txref,
+    flwRef: '',
+    status: '',
+  };
+  if (data.url === undefined) { // handle sandbox
+    let url = new URL(data);
+    response = {
+      txRef: props.txref,
+      flwRef: url.searchParams.get('ref'),
+      status: url.searchParams.get('message'),
+    };
+  }
+  else if (data.url.includes('https://ravesandboxapi.flutterwave.com')) {
+    let regex = /[?&]([^=#]+)=([^&#]*)/g,
+        params = {},
+        match=[];   
+    let values=[];
+    for (let i = 0; i < 4; i ++){
+      match = regex.exec(data.url);
+      values.push(match[2]);
+    }
+    response = {
+      txRef: props.txref,
+      flwRef:values[0],
+      status: values[2],
+    } 
+  }
+  else { // handle live
+    let regex = /[?&]([^=#]+)=([^&#]*)/g,
+        params = {},
+        match;
+    match = regex.exec(decode(data.url));
+    let parsedResp = JSON.parse(match[2]);
+    response = {
+      txRef: props.txref,
+      flwRef: parsedResp.transactionreference,
+      status: parsedResp.responsemessage
+    }
+  }
+  return response;
+};
+
+
 const messageRecived = async (props, data) => {
-  var webResponse = JSON.parse(data);
-  switch(webResponse.event){
+  let parsedData = typeof data === 'object' ? "" :  JSON.parse(data);
+  switch(parsedData.event){
     case 'cancelled':
       await setShowModal(false);
-      props.onCancel();
-    break;
+      return props.onCancel(parsedData.data);
     case 'successful':
       await setShowModal(false);
-      props.onSuccess(webResponse);
-      break;
+      return props.onSuccess(parsedData.data);
     default:
-      await setShowModal(false);
-      props.onError();
-    break;
+      try {
+        await setShowModal(false);  
+        await props.onSuccess(parseResponse(props,data));
+      } catch (error) {
+        console.log(error);
+        await props.onError(`${data} || ${error}` );
+      }
   }
 }

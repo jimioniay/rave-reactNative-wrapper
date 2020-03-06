@@ -29,6 +29,8 @@
   },
   "homepage": "https://github.com/BlessedYahaya/rave-reactNative-wrapper#readme",
   "dependencies": {
-    "react-native-webview": "^7.6.0"
+    "expo": "^36.0.2",
+    "react-native-webview": "^7.6.0",
+    "urldecode": "^1.0.1"
   }
 }
