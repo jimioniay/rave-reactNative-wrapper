@@ -42,7 +42,7 @@ export const Rave = props => {
                   currency: "${props.currency || 'NGN'}",
                   custom_logo:"${props.custom_logo || ''}",
                   txref: "${props.txref}",
-                  meta: "${props.meta}",
+                  meta: "${props.meta || []}",
                   onclose: function(data) {
                     var resp = {event: "cancelled", data: {txRef: "${
                       props.txref
