@@ -8,21 +8,17 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-
 import { WebView } from 'react-native-webview';
 import decode from 'urldecode';
-
 let showModal;
 let setShowModal;
 let isLoading;
 let setIsLoading;
-
 export const Rave = props => {
   console.log(props);
   [showModal, setShowModal] = useState(false);
   [isLoading, setIsLoading] = useState(false);
   //  this._onNavigationStateChange = this._onNavigationStateChange.bind(this)
-
   let Rave = {
     html: `
         <!DOCTYPE html>
@@ -34,48 +30,38 @@ export const Rave = props => {
             <form>
               <script src="https://api.ravepay.co/flwv3-pug/getpaidx/api/flwpbf-inline.js"></script>
             </form>
-
             <script>
-              const API_publicKey = "${props.raveKey}";
               window.onload = payWithRave;
               function payWithRave() {
                 var x = getpaidSetup({
-                  PBFPubKey: API_publicKey,
-                  amount: ${props.amount},
+                  PBFPubKey: "${props.raveKey}",
+                  amount: "${props.amount}",
                   customer_phone: "${props.customerPhone || ''}",
                   customer_email: "${props.customerEmail || ''}",
                   custom_description: "${props.contentDescription}",
                   currency: "${props.currency || 'NGN'}",
                   custom_logo:"${props.custom_logo || ''}",
                   txref: "${props.txref}",
-                  meta: [{
-                      metaname: "${props.billingName ||
-                        props.customerEmail ||
-                        ''}",
-                      metavalue: "${props.billingMobile ||
-                        props.customerPhone ||
-                        ''}"
-                  }],
+                  meta: "${props.meta}",
                   onclose: function(data) {
-                    var resp = {event: "cancelled", data: {txRef: ${
+                    var resp = {event: "cancelled", data: {txRef: "${
                       props.txref
-                    }, flwRef: dataç, status:""}};
+                    }", flwRef: data, status:""}};
                     window.ReactNativeWebView.postMessage(JSON.stringify(resp))
                   },
-                 
                    callback: function(response) {
                        var txref = response.tx.txRef;
                         if (
                           response.tx.chargeResponseCode == "00" ||
                           response.tx.chargeResponseCode == "0"
                       ) {
-                           var resp = {event: "successful", data: {txRef: ${
+                           var resp = {event: "successful", data: {txRef: "${
                              props.txref
-                           }, ...response}};
+                           }", ...response}};
                       } else {
-                        var resp = {event: "successful", data: {txRef: ${
+                        var resp = {event: "successful", data: {txRef: "${
                           props.txref
-                        }, ...response}};
+                        }", ...response}};
                         window.ReactNativeWebView.postMessage(JSON.stringify(resp))
                       }
                       x.close();
@@ -87,7 +73,6 @@ export const Rave = props => {
         </html>
       `,
   };
-
   if (Platform.OS === 'ios') {
     return (
       <View>
@@ -118,7 +103,6 @@ export const Rave = props => {
               }
             }}
           />
-
           {/*Start of Loading modal*/}
           {isLoading === true && (
             <View
@@ -205,7 +189,6 @@ export const Rave = props => {
               }
             }}
           />
-
           {/*Start of Loading modal*/}
           {isLoading === true && (
             <View
@@ -258,7 +241,6 @@ export const Rave = props => {
     );
   }
 };
-
 const parseResponse = (props, data) => {
   let response = {
     txRef: props.txref,
@@ -302,7 +284,6 @@ const parseResponse = (props, data) => {
   }
   return response;
 };
-
 const messageRecived = async (props, data) => {
   let parsedData = typeof data === 'object' ? '' : JSON.parse(data);
   switch (parsedData.event) {
