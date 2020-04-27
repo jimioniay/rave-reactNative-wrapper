@@ -35,13 +35,24 @@ export const Rave = props => {
               function payWithRave() {
                 var x = getpaidSetup({
                   PBFPubKey: "${props.raveKey}",
+                  integrity_hash:"${props.integrity_hash}",
                   amount: "${props.amount}",
                   customer_phone: "${props.customerPhone || ''}",
                   customer_email: "${props.customerEmail || ''}",
+                  customer_firstname: "${props.customer_firstname}",
+                  customer_lastname: "${props.customer_lastname}",
+                  pay_button_text:"${props.pay_button_text}",
+                  custom_title:"${props.custom_title}",
                   custom_description: "${props.contentDescription}",
                   currency: "${props.currency || 'NGN'}",
                   custom_logo:"${props.custom_logo || ''}",
                   txref: "${props.txref}",
+                  payment_options: "${props.payment_options || ''}",
+                  payment_plan:"${props.payment_plan || ''}",
+                  subaccounts: "${props.subaccounts || ''}",
+                  country:"${props.country || ''}",
+                  redirect_url:"${props.redirect_url || ''}",
+                  custom_logo:"${props.custom_logo || ''}",
                   meta: "${props.meta || []}",
                   onclose: function(data) {
                     var resp = {event: "cancelled", data: {txRef: "${
