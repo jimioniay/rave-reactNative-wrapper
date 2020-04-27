@@ -8,14 +8,12 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 import decode from 'urldecode';
 let showModal;
 let setShowModal;
 let isLoading;
 let setIsLoading;
 export const Rave = props => {
-  console.log(props);
   [showModal, setShowModal] = useState(false);
   [isLoading, setIsLoading] = useState(false);
   //  this._onNavigationStateChange = this._onNavigationStateChange.bind(this)
